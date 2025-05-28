@@ -1,20 +1,98 @@
 #!/bin/bash
 
-set -e
+# Step 0: Pastikan Minikube berjalan dan Ingress diaktifkan
+echo "Checking Minikube status..."
+if ! minikube status | grep -q "Running"; then
+    echo "Starting Minikube..."
+    minikube start
+fi
 
-echo "🔧 Building frontend & backend images..."
-./frontend/build.sh
-./backend/build.sh
+echo "Enabling Ingress addon..."
+minikube addons enable ingress
 
-echo "🚀 Deploying SQLite PVC..."
-kubectl apply -f k8s/sqlite-pvc.yaml
+# Step 1: Build dan load image
+echo "Building frontend image..."
+cd k8s/frontend
+podman build -t guestbook-frontend:latest .
+podman save guestbook-frontend:latest -o guestbook-frontend.tar
+minikube image load guestbook-frontend.tar
+rm guestbook-frontend.tar
 
-echo "🚀 Deploying Backend..."
-kubectl apply -f k8s/backend-deployment.yaml
-kubectl apply -f k8s/backend-service.yaml
+echo "Building backend image..."
+cd ../backend
+podman build -t guestbook-backend:latest .
+podman save guestbook-backend:latest -o guestbook-backend.tar
+minikube image load guestbook-backend.tar
+rm guestbook-backend.tar
 
-echo "🚀 Deploying Frontend..."
-kubectl apply -f k8s/frontend-deployment.yaml
-kubectl apply -f k8s/frontend-service.yaml
+# Step 2: Apply manifest kubernetes
+echo "Applying Kubernetes manifests..."
+cd ../..
 
-echo "✅ All components deployed successfully!"
+# Buat namespace if not exists
+kubectl create namespace cloud-computing --dry-run=client -o yaml | kubectl apply -f -
+
+# Deploy MySQL
+echo "Deploying MySQL..."
+cd k8s/database
+kubectl apply -f mysql-pvc.yaml
+kubectl apply -f mysql-deployment.yaml
+kubectl apply -f mysql-service.yaml
+
+# Wait for MySQL to be ready
+echo "Waiting for MySQL to be ready..."
+kubectl wait --for=condition=available --timeout=300s deployment/mysql -n cloud-computing
+
+# Deploy Redis
+echo "Deploying Redis..."
+kubectl apply -f redis-pvc.yaml
+kubectl apply -f redis-deployment.yaml
+kubectl apply -f redis-service.yaml
+
+# Wait for Redis to be ready
+echo "Waiting for Redis to be ready..."
+kubectl wait --for=condition=available --timeout=300s deployment/redis -n cloud-computing
+
+# Deploy backend
+echo "Deploying backend..."
+cd ../backend
+kubectl apply -f backend-deployment.yaml
+kubectl apply -f backend-service.yaml
+
+# Wait for backend to be ready
+echo "Waiting for backend to be ready..."
+kubectl wait --for=condition=available --timeout=300s deployment/backend -n cloud-computing
+
+# Deploy frontend
+echo "Deploying frontend..."
+cd ../frontend
+kubectl apply -f frontend-deployment.yaml
+kubectl apply -f frontend-service.yaml
+
+# Wait for frontend to be ready
+echo "Waiting for frontend to be ready..."
+kubectl wait --for=condition=available --timeout=300s deployment/frontend -n cloud-computing
+
+# Deploy ingress
+echo "Deploying ingress..."
+cd ..
+kubectl apply -f ingress.yaml
+
+echo "Deployment completed!"
+echo "Checking pod status..."
+kubectl get pods -n cloud-computing
+
+echo "
+To access the application, run these commands in separate terminals:
+
+1. For frontend:
+   kubectl port-forward -n cloud-computing svc/frontend-service 8080:80
+
+2. For backend:
+   kubectl port-forward -n cloud-computing svc/backend-service 3000:3000
+
+Then access the application at:
+http://localhost:8080
+
+Note: Keep the port-forward commands running while you use the application.
+" 
