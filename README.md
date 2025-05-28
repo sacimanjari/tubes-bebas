@@ -86,6 +86,27 @@ kubectl port-forward -n cloud-computing svc/frontend-service 8080:80
 kubectl port-forward -n cloud-computing svc/backend-service 3000:3000
 ```
 
+6. Access MySQL
+```bash
+kubectl exec -it -n cloud-computing mysql-6bf7c7cc98-pn56v -- mysql -u guestbook -pguestbook guestbook
+```
+
+```bash
+SHOW DATABASES;
+```
+
+```bash
+USE <nama database>;
+```
+
+```bash
+SHOW TABLES;
+```
+
+```bash
+SELECT * FROM <nama tabel>;
+```
+
 ## 🚀 API Endpoints
 
 ### Health Check
