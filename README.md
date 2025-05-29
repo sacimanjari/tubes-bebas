@@ -11,7 +11,7 @@ This project implements a **Digital Guestbook application** using microservices 
 - **Responsive Design**: Beautiful, modern UI that works on all devices
 - **Persistent Storage**: Messages are stored in Redis with data persistence
 
-## Architecture Components
+## 🏗️ Architecture
 
 ### Frontend Service
 - Nginx-based web server
@@ -21,11 +21,7 @@ This project implements a **Digital Guestbook application** using microservices 
 
 ### Backend Service
 - Node.js application with Express
-- RESTful API endpoints for guestbook operations:
-  - `GET /api/health` - Service health check
-  - `POST /api/guestbook` - Add new entry
-  - `GET /api/guestbook` - Get all entries
-  - `DELETE /api/guestbook` - Clear all entries
+- RESTful API endpoints for guestbook operations
 - Input validation and error handling
 
 ### Database Service
@@ -33,7 +29,7 @@ This project implements a **Digital Guestbook application** using microservices 
 - List-based storage for guestbook entries
 - Persistent volume for data persistence
 
-## Project Structure
+## 📁 Project Structure
 ```
 .
 ├── k8s/                    # Kubernetes manifests
@@ -44,13 +40,13 @@ This project implements a **Digital Guestbook application** using microservices 
 └── monitoring/            # Monitoring configurations
 ```
 
-## Prerequisites
+## 🛠️ Prerequisites
 - Minikube
 - kubectl
 - Podman
 - Helm (for monitoring stack)
 
-## Getting Started
+## 🚀 Getting Started
 
 1. Start Minikube:
 ```bash
@@ -67,7 +63,12 @@ minikube addons enable ingress
 kubectl apply -f manifests/
 ```
 
-4. Access the application:
+4. Deploy all pods:
+```bash
+./deploy.sh
+```
+
+5. Access the application:
 ```bash
 # Get Minikube IP
 minikube ip
@@ -75,39 +76,33 @@ minikube ip
 # Access the guestbook at: http://<minikube-ip>
 ```
 
-5. Port forward to access locally:
-``` bash
-# Port forward to run frontend service locally
+## 🔌 Local Development Access
+
+### Frontend Service
+```bash
 kubectl port-forward -n cloud-computing svc/frontend-service 8080:80
+# Access at: localhost:8080
 ```
 
-``` bash
-# Port forward to run bakend service locally
+### Backend Service
+```bash
 kubectl port-forward -n cloud-computing svc/backend-service 3000:3000
+# Access at: localhost:3000
 ```
 
-6. Access MySQL
+### Database Access
 ```bash
+# Connect to MySQL
 kubectl exec -it -n cloud-computing mysql-6bf7c7cc98-pn56v -- mysql -u guestbook -pguestbook guestbook
-```
 
-```bash
+# Common MySQL Commands
 SHOW DATABASES;
-```
-
-```bash
-USE <nama database>;
-```
-
-```bash
+USE <database_name>;
 SHOW TABLES;
+SELECT * FROM <table_name>;
 ```
 
-```bash
-SELECT * FROM <nama tabel>;
-```
-
-## 🚀 API Endpoints
+## 📡 API Endpoints
 
 ### Health Check
 - **GET** `/api/health`
@@ -132,12 +127,12 @@ SELECT * FROM <nama tabel>;
 3. **Clear All**: Admin function to remove all entries (requires confirmation)
 4. **Status Monitoring**: Real-time status indicators show service health
 
-## Monitoring
+## 📊 Monitoring
 - Prometheus for metrics collection
 - Grafana for visualization
 - k6 for load testing
 
-## Security Features
+## 🔒 Security Features
 - Network Policies
 - Secrets Management
 - RBAC
