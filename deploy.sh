@@ -13,15 +13,15 @@ minikube addons enable ingress
 # Step 1: Build dan load image
 echo "Building frontend image..."
 cd k8s/frontend
-podman build -t guestbook-frontend:latest .
-podman save guestbook-frontend:latest -o guestbook-frontend.tar
+docker build -t guestbook-frontend:latest .
+docker save guestbook-frontend:latest -o guestbook-frontend.tar
 minikube image load guestbook-frontend.tar
 rm guestbook-frontend.tar
 
 echo "Building backend image..."
 cd ../backend
-podman build -t guestbook-backend:latest .
-podman save guestbook-backend:latest -o guestbook-backend.tar
+docker build -t guestbook-backend:latest .
+docker save guestbook-backend:latest -o guestbook-backend.tar
 minikube image load guestbook-backend.tar
 rm guestbook-backend.tar
 

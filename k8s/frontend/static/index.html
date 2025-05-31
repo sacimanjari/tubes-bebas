@@ -167,23 +167,32 @@
             }
         });
 
-        async function loadMessages() {
-            try {
+        async function loadMessages() {            try {
                 const response = await fetch('/api/guestbook');
                 const messages = await response.json();
                 
+                // Ensure messages is an array
+                const messageArray = Array.isArray(messages) ? messages : [];
+                
                 const messagesContainer = document.getElementById('messages');
-                messagesContainer.innerHTML = messages.map(msg => `
-                    <div class="message">
-                        <div class="message-header">
-                            <span>${msg.name}</span>
-                            <span>${new Date(msg.timestamp).toLocaleString()}</span>
+                
+                if (messageArray.length === 0) {
+                    messagesContainer.innerHTML = '<div class="message">No messages yet. Be the first to sign the guestbook!</div>';
+                } else {
+                    messagesContainer.innerHTML = messageArray.map(msg => `
+                        <div class="message">
+                            <div class="message-header">
+                                <span>${msg.name}</span>
+                                <span>${new Date(msg.timestamp).toLocaleString()}</span>
+                            </div>
+                            <div class="message-content">${msg.message}</div>
                         </div>
-                        <div class="message-content">${msg.message}</div>
-                    </div>
-                `).join('');
+                    `).join('');
+                }
             } catch (error) {
                 console.error('Error loading messages:', error);
+                const messagesContainer = document.getElementById('messages');
+                messagesContainer.innerHTML = '<div class="message">Unable to load messages. Please try again later.</div>';
             }
         }
 

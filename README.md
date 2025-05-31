@@ -43,7 +43,7 @@ This project implements a **Digital Guestbook application** using microservices 
 ## 🛠️ Prerequisites
 - Minikube
 - kubectl
-- Podman
+- docker
 - Helm (for monitoring stack)
 
 ## 🚀 Getting Started
@@ -58,28 +58,32 @@ minikube start
 minikube addons enable ingress
 ```
 
-3. Apply Kubernetes manifests:
+3. Create the namespace:
+```bash
+kubectl create namespace cloud-computing
+```
+
+4. Apply Kubernetes manifests:
 ```bash
 kubectl apply -f manifests/
 ```
 
-4. Deploy all pods:
+5. Deploy all pods:
 ```bash
 ./deploy.sh
 ```
 
-5. Access the application:
+6. Check if all pods are running:
 ```bash
-# Get Minikube IP
-minikube ip
-
-# Access the guestbook at: http://<minikube-ip>
+# Open a new terminal and run:
+kubectl get pods -n cloud-computing
 ```
 
 ## 🔌 Local Development Access
 
 ### Frontend Service
 ```bash
+# Open a new terminal and run:
 kubectl port-forward -n cloud-computing svc/frontend-service 8080:80
 # Access at: localhost:8080
 ```
@@ -93,7 +97,7 @@ kubectl port-forward -n cloud-computing svc/backend-service 3000:3000
 ### Database Access
 ```bash
 # Connect to MySQL
-kubectl exec -it -n cloud-computing mysql-6bf7c7cc98-pn56v -- mysql -u guestbook -pguestbook guestbook
+kubectl exec -it -n cloud-computing <mysql-pods-name> -- mysql -u guestbook -pguestbook guestbook
 
 # Common MySQL Commands
 SHOW DATABASES;

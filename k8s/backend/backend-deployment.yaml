@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: localhost/guestbook-backend:latest
+        image: guestbook-backend:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3000

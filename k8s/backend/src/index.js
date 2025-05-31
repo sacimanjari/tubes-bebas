@@ -59,10 +59,14 @@ async function initDatabase() {
     try {
         await sequelize.authenticate();
         console.log('MySQL connection established successfully.');
-        await sequelize.sync();
-        console.log('Database synchronized.');
+        
+        // Force sync to create tables if they don't exist
+        await sequelize.sync({ force: false, alter: true });
+        console.log('Database synchronized and tables created/updated.');
     } catch (error) {
         console.error('Unable to connect to MySQL:', error);
+        // Retry connection after 5 seconds
+        setTimeout(initDatabase, 5000);
     }
 }
 
@@ -107,7 +111,8 @@ app.get('/api/guestbook', async (req, res) => {
         res.json(messages);
     } catch (error) {
         console.error('Error fetching messages:', error);
-        res.status(500).json({ error: 'Failed to fetch messages' });
+        // Return empty array instead of error object to prevent frontend issues
+        res.json([]);
     }
 });
 
