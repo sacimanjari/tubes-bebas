@@ -14,13 +14,17 @@ spec:
     metadata:
       labels:
         app: backend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3002"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
       - name: backend
         image: guestbook-backend:latest
         imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 3000
+        - containerPort: 3002
         env:
         - name: REDIS_HOST
           value: "redis-service"
@@ -44,12 +48,12 @@ spec:
         readinessProbe:
           httpGet:
             path: /api/health
-            port: 3000
+            port: 3002
           initialDelaySeconds: 5
           periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /api/health
-            port: 3000
+            port: 3002
           initialDelaySeconds: 15
           periodSeconds: 20 

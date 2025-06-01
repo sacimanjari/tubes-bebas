@@ -1,0 +1,1 @@
+k6 run k8s/load-testing/load-test.js

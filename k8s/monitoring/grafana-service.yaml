@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-service
+  namespace: cloud-computing
+spec:
+  selector:
+    app: grafana
+  ports:
+    - protocol: TCP
+      port: 3003
+      targetPort: 3000
+  type: ClusterIP 

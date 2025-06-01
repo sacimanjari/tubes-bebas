@@ -140,4 +140,133 @@ SELECT * FROM <table_name>;
 - Network Policies
 - Secrets Management
 - RBAC
-- Container Vulnerability Scanning (Trivy) 
+- Container Vulnerability Scanning (Trivy)
+
+## Monitoring
+
+The application includes comprehensive monitoring through Prometheus and Grafana:
+
+### Prometheus Metrics
+- HTTP request duration
+- Request rates
+- Error rates
+- Active connections
+- System metrics
+
+### Grafana Dashboard
+The dashboard includes:
+- Request Duration panel
+- Request Rate panel
+- Active Connections panel
+- Error Rate panel
+
+## Load Testing
+
+The application includes a k6 load testing script. To run the load test:
+
+1. Install k6 from https://k6.io/docs/getting-started/installation
+2. Run the load test:
+```bash
+k6 run k8s/load-testing/load-test.js
+```
+
+The load test will:
+- Ramp up to 20 virtual users
+- Maintain load for 1 minute
+- Ramp down to 0 users
+- Monitor response times and error rates
+
+## Cleanup
+
+To remove all deployed resources and start fresh:
+
+```bash
+./cleanup.sh
+```
+
+This will:
+- Delete all deployments
+- Remove all services
+- Clean up all pods
+- Delete persistent volume claims
+- Remove ConfigMaps
+- Delete ingress resources
+- Remove the cloud-computing namespace
+
+## Development
+
+### Project Structure
+```
+k8s/
+├── backend/           # Backend service
+├── frontend/         # Frontend service
+├── database/         # MySQL configuration
+├── monitoring/       # Prometheus and Grafana setup
+└── load-testing/     # k6 load test scripts
+```
+
+### Local Development
+1. Install dependencies:
+```bash
+cd k8s/backend
+npm install
+cd ../frontend
+npm install
+```
+
+2. Run services locally:
+```bash
+# Backend
+cd k8s/backend
+npm start
+
+# Frontend
+cd k8s/frontend
+npm start
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Minikube not running**
+```bash
+minikube start
+```
+
+2. **Ingress not working**
+```bash
+minikube addons enable ingress
+```
+
+3. **Pods not starting**
+```bash
+kubectl describe pod <pod-name> -n cloud-computing
+```
+
+4. **Database connection issues**
+```bash
+kubectl logs deployment/mysql -n cloud-computing
+```
+
+### Monitoring Issues
+
+1. **Prometheus not collecting metrics**
+- Check if the backend service is exposing metrics at `/metrics`
+- Verify Prometheus configuration in `prometheus-config.yaml`
+
+2. **Grafana dashboard not showing data**
+- Verify Prometheus data source configuration
+- Check if metrics are being collected in Prometheus
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details. 

@@ -2,12 +2,48 @@ const express = require('express');
 const Redis = require('ioredis');
 const cors = require('cors');
 const { Sequelize, DataTypes } = require('sequelize');
+const promClient = require('prom-client');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3002;
+
+// Prometheus metrics setup
+const collectDefaultMetrics = promClient.collectDefaultMetrics;
+collectDefaultMetrics({ timeout: 5000 });
+
+// Create custom metrics
+const httpRequestDurationMicroseconds = new promClient.Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'Duration of HTTP requests in seconds',
+  labelNames: ['method', 'route', 'status_code'],
+  buckets: [0.1, 0.5, 1, 2, 5]
+});
+
+const activeConnections = new promClient.Gauge({
+  name: 'active_connections',
+  help: 'Number of active connections'
+});
+
+// Prometheus metrics endpoint
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', promClient.register.contentType);
+  res.end(await promClient.register.metrics());
+});
 
 app.use(cors());
 app.use(express.json());
+
+// Middleware to measure request duration
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    httpRequestDurationMicroseconds
+      .labels(req.method, req.route?.path || req.path, res.statusCode.toString())
+      .observe(duration / 1000);
+  });
+  next();
+});
 
 // Redis setup
 console.log('Initializing Redis client...');
@@ -24,7 +60,14 @@ redis.on('error', (err) => {
     console.error('Redis Client Error:', err);
 });
 
-redis.on('connect', () => console.log('Redis Client Connected'));
+redis.on('connect', () => {
+    console.log('Redis Client Connected');
+    activeConnections.inc();
+});
+
+redis.on('close', () => {
+    activeConnections.dec();
+});
 
 // MySQL setup
 const sequelize = new Sequelize(

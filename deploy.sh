@@ -73,6 +73,25 @@ kubectl apply -f frontend-service.yaml
 echo "Waiting for frontend to be ready..."
 kubectl wait --for=condition=available --timeout=300s deployment/frontend -n cloud-computing
 
+# Deploy monitoring stack
+echo "Deploying monitoring stack..."
+cd ../monitoring
+kubectl apply -f prometheus-config.yaml
+kubectl apply -f prometheus-deployment.yaml
+kubectl apply -f prometheus-service.yaml
+kubectl apply -f grafana-dashboard-provisioning.yaml
+kubectl apply -f grafana-datasource.yaml
+kubectl apply -f grafana-deployment.yaml
+kubectl apply -f grafana-service.yaml
+
+# Wait for monitoring stack to be ready
+echo "Waiting for monitoring stack to be ready..."
+kubectl wait --for=condition=available --timeout=300s deployment/prometheus -n cloud-computing
+kubectl wait --for=condition=available --timeout=300s deployment/grafana -n cloud-computing
+
+# Apply Prometheus RBAC
+kubectl apply -f prometheus-rbac.yaml
+
 # Deploy ingress
 echo "Deploying ingress..."
 cd ..
@@ -89,10 +108,23 @@ To access the application, run these commands in separate terminals:
    kubectl port-forward -n cloud-computing svc/frontend-service 8080:80
 
 2. For backend:
-   kubectl port-forward -n cloud-computing svc/backend-service 3000:3000
+   kubectl port-forward -n cloud-computing svc/backend-service 3002:3002
 
-Then access the application at:
-http://localhost:8080
+3. For Prometheus:
+   kubectl port-forward -n cloud-computing svc/prometheus-service 9090:9090
 
-Note: Keep the port-forward commands running while you use the application.
+4. For Grafana:
+   kubectl port-forward -n cloud-computing svc/grafana-service 3003:3003
+
+Then access the applications at:
+- Frontend: http://localhost:8080
+- Backend: http://localhost:3002
+- Prometheus: http://localhost:9090
+- Grafana: http://localhost:3003 (default credentials: admin/admin)
+
+To run load tests:
+1. Install k6: https://grafana.com/docs/k6/latest/set-up/install-k6/
+2. Run: k6 run k8s/load-testing/load-test.js
+
+Note: Keep the port-forward commands running while you use the applications.
 " 
